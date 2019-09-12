@@ -2,18 +2,20 @@ Import-Module Activedirectory
 
 # Lines below are interchanged for operation or testing - Get-ADForest is used in normal operation, the manual config is used in testing
 $Domains = (Get-ADforest).domains
-#$Domains = "grafman.graftonplc.net","graftonho.graftonplc.net
 
+# Declare Variables
 $ForestPrivGroups = "Enterprise Admins", "Schema Admins"
 $DomainPrivGroups = "Administrators", "Account Operators", "Server Operators", "Backup Operators", "Domain Admins"
 $Members = @()
 $MemberDetails = @()
 $colMembers = @()
-$Users = @()
+$FullDetails = @()
+$Domain = (Get-AdForest).Name
 
+# =============== Do the Forest Privilige Groups First ================
 foreach ($group in $ForestPrivGroups) {
     $Members = @() 
-    $Domain = "graftonplc.net"     
+        
     Write-Host "Enumerating $Group" -foreground Blue        
     $Members = Get-ADGroupMember $Group -server $Domain -Recursive         
     $Count = $Members.count                
