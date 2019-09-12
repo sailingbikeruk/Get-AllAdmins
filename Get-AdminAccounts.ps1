@@ -25,6 +25,8 @@ foreach ($group in $ForestPrivGroups)
     
     foreach ($member in $Members) {            
         $MembersDetails = get-aduser $member -properties * | Select-Object DisplayName, Enabled, LastLogonDate, PasswordLastSet, PasswordNeverExpires, SamAccountName, UserPrincipalName, Description, @{Name = 'PasswordAge'; Expression = { ((Get-Date) - $_.PasswordLastSet).Days } }                      
+
+# Build a custom object to hold the user details as well as the forest domain and group name
         $FullDetails = [PSCustomObject]@{
             DisplayName = $MembersDetails.DisplayName
             Enabled = $MembersDetails.Enabled
@@ -53,7 +55,7 @@ foreach ($Domain in $ChildDomains) {
         foreach ($member in $Members) {
             $MembersDetails = get-aduser $member -properties * | Select-Object DisplayName, Enabled, LastLogonDate, PasswordLastSet, PasswordNeverExpires, SamAccountName, UserPrincipalName, Description, @{Name = 'PasswordAge'; Expression = { ((Get-Date) - $_.PasswordLastSet).Days } }          
 
-            # Build a custom object to hold the user details as well as the child domain group
+# Build a custom object to hold the user details as well as the child domain and group name
             $FullDetails = [PSCustomObject]@{
                 DisplayName          = $MembersDetails.DisplayName
                 Enabled              = $MembersDetails.Enabled
