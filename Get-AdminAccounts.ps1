@@ -1,7 +1,8 @@
 Import-Module Activedirectory
 
-# Lines below are interchanged for operation or testing - Get-ADForest is used in normal operation, the manual config is used in testing
-$Domains = (Get-ADforest).domains
+# Get Domains
+$ChildDomains = (Get-ADForest).domains
+$ForestDomain = (Get-AdForest).Name
 
 # Declare Variables
 $ForestPrivGroups = "Enterprise Admins", "Schema Admins"
@@ -11,34 +12,37 @@ $MemberDetails = @()
 $colMembers = @()
 $FullDetails = @()
 $Domain = (Get-AdForest).Name
+$Filepath = "E:\Scripts\Ian\CSV\PrivUsers\AllPrivUsers.csv " # Change this to suit hyour needs.
 
-# =============== Do the Forest Privilige Groups First ================
-foreach ($group in $ForestPrivGroups) {
+# =============== Do the Forest Privileged Groups First ================
+foreach ($group in $ForestPrivGroups) 
+{
     $Members = @() 
-        
     Write-Host "Enumerating $Group" -foreground Blue        
-    $Members = Get-ADGroupMember $Group -server $Domain -Recursive         
+    $Members = Get-ADGroupMember $Group -server $ForestDomain -Recursive         
     $Count = $Members.count                
     Write-Host "Found $count members in $Group"        
+    
     foreach ($member in $Members) {            
         $MembersDetails = get-aduser $member -properties * | Select-Object DisplayName, Enabled, LastLogonDate, PasswordLastSet, PasswordNeverExpires, SamAccountName, UserPrincipalName, Description, @{Name = 'PasswordAge'; Expression = { ((Get-Date) - $_.PasswordLastSet).Days } }                      
-        $FullDetails = [PSCustomObject]@{                
-            DisplayName          = $MembersDetails.DisplayName 
-            Enabled              = $MembersDetails.Enabled               
-            LastLogonDate        = $MembersDetails.LastLogonDate               
-            PasswordAge          = $MembersDetails.PasswordAge                
-            PasswordLastSet      = $MembersDetails.PasswordLastSet                
-            PasswordNeverExpires = $MembersDetails.PasswordNeverExpires                
-            SamAccountName       = $MembersDetails.SamAccountName                
-            UserPrincipalName    = $MembersDetails.UserPrincipalName                
-            Description          = $MembersDetails.Description                
-            Domain               = $Domain                
-            Group                = $Group            
-        }            
+        $FullDetails = [PSCustomObject]@{
+            DisplayName = $MembersDetails.DisplayName
+            Enabled = $MembersDetails.Enabled
+            LastLogonDate = $MembersDetails.LastLogonDate
+            PasswordAge = $MembersDetails.PasswordAge
+            PasswordLastSet = $MembersDetails.PasswordLastSet
+            PasswordNeverExpires = $MembersDetails.PasswordNeverExpires
+            SamAccountName = $MembersDetails.SamAccountName
+            UserPrincipalName = $MembersDetails.UserPrincipalName
+            Description = $MembersDetails.Description
+            Domain = $ForestDomain
+            Group = $Group
+        }
         $colMembers += $FullDetails 
     }
 }
-foreach ($Domain in $Domains) {
+# ====================== Iterate through each child domain ==================================
+foreach ($Domain in $ChildDomains) {
     Write-Host "Enumerating Groups in $Domain" -ForegroundColor Yellow
     foreach ($Group in $DomainPrivGroups) {
         $Members = @()
@@ -48,6 +52,8 @@ foreach ($Domain in $Domains) {
         Write-Host "Found $count members in $Group"
         foreach ($member in $Members) {
             $MembersDetails = get-aduser $member -properties * | Select-Object DisplayName, Enabled, LastLogonDate, PasswordLastSet, PasswordNeverExpires, SamAccountName, UserPrincipalName, Description, @{Name = 'PasswordAge'; Expression = { ((Get-Date) - $_.PasswordLastSet).Days } }          
+
+            # Build a custom object to hold the user details as well as the child domain group
             $FullDetails = [PSCustomObject]@{
                 DisplayName          = $MembersDetails.DisplayName
                 Enabled              = $MembersDetails.Enabled
@@ -67,7 +73,7 @@ foreach ($Domain in $Domains) {
     }
 }
 write-host "`n`nwriting CSV file to E:\Scripts\Ian\CSV\PrivUsers\AllPrivUsers.csv " -ForegroundColor Green
-$colMembers | export-csv -Path E:\Scripts\Ian\CSV\PrivUsers\AllPrivUsers.csv -NoTypeInformation
+$colMembers | export-csv -Path $Filepath -NoTypeInformation
 
 
 
