@@ -8,11 +8,10 @@ $ForestDomain = (Get-AdForest).Name
 $ForestPrivGroups = "Enterprise Admins", "Schema Admins"
 $DomainPrivGroups = "Administrators", "Account Operators", "Server Operators", "Backup Operators", "Domain Admins"
 $Members = @()
-$MemberDetails = @()
 $colMembers = @()
 $FullDetails = @()
 $Domain = (Get-AdForest).Name
-$Filepath = "E:\Scripts\Ian\CSV\PrivUsers\AllPrivUsers.csv " # Change this to suit hyour needs.
+$Filepath = "E:\Scripts\Ian\CSV\PrivUsers\AllPrivUsers.csv " # Change this to suit your needs.
 
 # =============== Do the Forest Privileged Groups First ================
 foreach ($group in $ForestPrivGroups) 
