@@ -11,7 +11,7 @@ $Members = @()
 $colMembers = @()
 $FullDetails = @()
 $Domain = (Get-AdForest).Name
-$Filepath = "E:\Scripts\Ian\CSV\PrivUsers\AllPrivUsers.csv " # Change this to suit your needs.
+$Filepath = "E:\Scripts\Ian\CSV\AllPrivUsers.csv " # Change this to suit your needs.
 
 # =============== Do the Forest Privileged Groups First ================
 foreach ($group in $ForestPrivGroups) 
@@ -47,8 +47,9 @@ foreach ($Domain in $ChildDomains) {
     Write-Host "Enumerating Groups in $Domain" -ForegroundColor Yellow
     foreach ($Group in $DomainPrivGroups) {
         $Members = @()
+        $PDCEmulator = get-addomain -Identity $Domain | Select -expandproperty pdcemulator
         Write-Host "Enumerating $Group" -foreground Blue
-        $Members = Get-ADGroupMember $Group -server $Domain -Recursive 
+        $Members = Get-ADGroupMember $Group -server $PDCEmulator -Recursive 
         $Count = $Members.count        
         Write-Host "Found $count members in $Group"
         foreach ($member in $Members) {
